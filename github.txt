@@ -1,0 +1,53 @@
+import pandas as pd 
+import numpy as np 
+from sklearn.model_selection import train_test_split 
+from sklearn.preprocessing import StandardScaler 
+from sklearn.linear_model import LogisticRegression 
+from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score 
+from sklearn.impute import Simplelmputer
+ 
+# Load historical transaction data (replace 'creditcard[1].csv' with your actual file path) 
+data = pd.read_csv('creditcard.csv') 
+
+# Separate features and target variable 
+X = data.drop('Class', axis=1) # Features (all columns except 'Class') 
+y = data['Class'] # Target variable (fraudulent or legitimate) 
+
+# Check for NaN values in the target variable and remove corresponding rows 
+nan_indices = y[y.isna()].index 
+X = X.drop(nan_indices)
+y = y.drop(nan_indices) 
+
+# Data Preprocessing 
+# Handle missing values (consider domain knowledge and data quality) 
+
+imputer = Simplelmputer(strategy='median') 
+X = pd.DataFrame(imputer.fit_transform(X), columns=X.columns) 
+
+# Feature scaling (consider algorithm sensitivity to feature scale) 
+scaler = StandardScaler() 
+X_scaled = scaler.fit_transform(X) 
+
+# Model Selection and Training 
+# Split data into training and testing sets 
+X_train, X_test, y_train, y_test = train_test_split(X_scaled, y, test_size=0.2, random_state=42) 
+
+# Train Logistic Regression model 
+model = LogisticRegression (random_state=42) 
+
+model.fit(X_train, y_train)
+y_pred = model.predict(X_test) 
+accuracy = accuracy_score(y_test, y_pred) 
+precision = precision_score(y_test, y_pred, average='weighted') 
+recall = recall_score(y_test, y_pred, average='weighted') 
+f1 = f1_score(y_test, y_pred, average='weighted') 
+print("Accuracy:", accuracy) 
+print("Precision:", precision) 
+print("Recall:", recall) 
+print("F1 Score:", f1) 
+
+# Further analysis (optional) 
+# Feature importance analysis using model coefficients (for logistic regression) 
+
+feature_importances = pd.DataFrame({'Feature': data.columns[:-1], 'Importance': model.coef_[0]}) 
+print("Feature Importances:\n", feature_importances)
